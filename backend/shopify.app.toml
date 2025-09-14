@@ -1,0 +1,40 @@
+# This file is the complete configuration manifest for your Shopify app.
+# The Shopify CLI uses this file as the single source of truth for your app's settings.
+
+# --- App Information ---
+# The 'name' of your app as it appears in the Shopify Partner Dashboard.
+name = "xeno-test-fde"
+
+# The 'client_id' is your app's API Key from the Partner Dashboard.
+client_id = "173070684fdea11106ff1ac31835549d"
+
+# --- App URLs ---
+# This is the base URL of your application, used for OAuth and other redirects.
+application_url = "https://a3c5f9741c66.ngrok-free.app"
+embedded = false # Your app is a standalone dashboard, not embedded in the Shopify admin.
+
+# --- Authentication Configuration (Required) ---
+# This section defines the OAuth redirect paths for your app.
+[auth]
+redirect_urls = [
+  "https://a3c5f9741c66.ngrok-free.app/api/shopify/callback"
+]
+
+# --- App Scopes ---
+# This structure is based on the official documentation and is the correct way to define scopes.
+[access_scopes]
+# This must be a comma-separated string matching the scopes in `shopify.config.js`.
+scopes = "read_products,read_orders,read_customers"
+
+# --- Webhook Subscriptions ---
+[webhooks]
+# API version for all webhooks (Required)
+api_version = "2024-07"
+
+  # Each webhook subscription is a separate block.
+  [[webhooks.subscriptions]]
+  topics = ["orders/create"]
+  uri = "/api/shopify/webhooks/orders/create"
+
+[build]
+include_config_on_deploy = true
