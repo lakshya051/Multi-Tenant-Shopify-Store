@@ -34,10 +34,6 @@ export function BestSellingProductsChart({ orders, products }: ChartProps) {
     .sort((a, b) => b.sales - a.sales)
     .slice(0, 5); 
 
-
-  // chart height is managed via container CSS
-  
-
   return (
 
     <div className="bg-white rounded-lg shadow-md p-6 border h-[500px]"> 

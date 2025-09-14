@@ -1,5 +1,4 @@
 "use client";
-
 import { createContext, useContext } from 'react';
 import { Tenant } from '../../lib/clientApiService';
 
@@ -15,7 +14,6 @@ interface DashboardContextType {
   openAddStoreModal: () => void;
   newlyInstalledTenant: {id: string; url: string} | null;
 }
-
 
 export const DashboardContext = createContext<DashboardContextType | null>(null);
 

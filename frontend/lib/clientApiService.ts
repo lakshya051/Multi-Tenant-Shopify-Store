@@ -5,6 +5,15 @@ export interface Product {
   productType: string | null; 
   imageUrl: string | null;
 }
+export interface Checkout {
+  id: string;
+  totalPrice: number;
+  currency: string;
+  customerEmail: string | null;
+  createdAt: string;
+  webUrl: string | null; 
+  updatedAt: string;
+}
 export interface Customer { 
   id: string; 
   firstName: string | null; 
@@ -23,13 +32,15 @@ export interface Order {
   createdAt: string; 
   customer?: { id: string }; 
   lineItems?: LineItem[];
+  checkoutId: string | null;
 }
 export interface Tenant { 
   id: string; 
   storeUrl: string; 
   products: Product[]; 
   customers: Customer[]; 
-  orders: Order[]; 
+  orders: Order[];
+  checkouts: Checkout[]; 
 }
 export interface LineItem { 
   id: string; 
@@ -37,9 +48,6 @@ export interface LineItem {
   title: string; 
   productId: string | null; 
 }
-
-// const API_HOST = process.env.NEXT_PUBLIC_API_BASE_URL;
-// const API_BASE_URL = `${API_HOST}/api`;
 
 const API_HOST = process.env.NEXT_PUBLIC_API_BASE_URL;
 const API_BASE_URL = `${API_HOST}/api`;
@@ -58,12 +66,11 @@ export const clientApiService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   }),
-    register: (email: string, password: string) => clientApiFetch(`${API_BASE_URL}/auth/register`, {
+  register: (email: string, password: string) => clientApiFetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   }),
-
   logout: () => clientApiFetch(`${API_BASE_URL}/auth/logout`, {
     method: 'POST',
   }),

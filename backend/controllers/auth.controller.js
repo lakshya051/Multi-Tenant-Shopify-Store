@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma.config');
-const crypto = require('crypto');
+const crypto = require('crypto'); 
 
 const register = async (req, res) => {
     const { email, password } = req.body;
@@ -23,26 +23,32 @@ const login = async (req, res) => {
         }
         
         const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        
-        res.cookie('token', token, { 
-            httpOnly: true, 
-            secure: process.env.NODE_ENV === 'production', 
-            sameSite: 'lax', 
-            maxAge: 24 * 60 * 60 * 1000
+       
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
         });
+        
         res.status(200).json({ message: "Login successful." });
     } catch (error) {
+        console.error("Login error:", error);
         res.status(500).json({ error: "Login failed." });
     }
 };
+
 
 const logout = (req, res) => {
     res.clearCookie('token');
     res.status(200).json({ message: "Logged out successfully." });
 };
 
+
 const changePassword = async (req, res) => {
-    
     const { userId } = req.user;
     const { oldPassword, newPassword } = req.body;
 
@@ -59,13 +65,11 @@ const changePassword = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found." });
         }
-
         
         const isMatch = await bcrypt.compare(oldPassword, user.password);
         if (!isMatch) {
             return res.status(401).json({ error: "Incorrect old password." });
         }
-
         
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         await prisma.user.update({
@@ -79,7 +83,5 @@ const changePassword = async (req, res) => {
         res.status(500).json({ error: "An error occurred while changing the password." });
     }
 };
-
-
 
 module.exports = { register, login, logout, changePassword };

@@ -64,6 +64,7 @@ async function syncOrders(tenantId, storeUrl, accessToken) {
         totalPrice: parseFloat(order.total_price),
         financialStatus: order.financial_status,
         customerId: order.customer ? order.customer.id : null,
+        checkoutId: order.checkout_id,
       },
       create: {
         id: order.id,
@@ -73,6 +74,7 @@ async function syncOrders(tenantId, storeUrl, accessToken) {
         financialStatus: order.financial_status,
         createdAt: new Date(order.created_at),
         customerId: order.customer ? order.customer.id : null,
+        checkoutId: order.checkout_id,
       },
     });
 
@@ -104,5 +106,32 @@ async function syncOrders(tenantId, storeUrl, accessToken) {
   console.log(`Synced ${orders.length} orders for ${storeUrl}`);
 }
 
+async function syncCheckouts(tenantId, storeUrl, accessToken) {
+  const shopifyApiUrl = `https://${storeUrl}/admin/api/2024-07/checkouts.json`;
+  const response = await fetch(shopifyApiUrl, { headers: { 'X-Shopify-Access-Token': accessToken } });
+  if (!response.ok) throw new Error(`Failed to fetch checkouts: ${response.statusText}`);
+  const { checkouts } = await response.json();
+  
+  for (const checkout of checkouts) {
+    await prisma.checkout.upsert({
+      where: { id_tenantId: { id: checkout.id, tenantId } },
+      update: {
+        totalPrice: parseFloat(checkout.total_price) || 0,
+        customerEmail: checkout.email,
+        webUrl: checkout.web_url || checkout.abandoned_checkout_url || null,
+      },
+      create: {
+        id: checkout.id,
+        tenantId,
+        totalPrice: parseFloat(checkout.total_price) || 0,
+        currency: checkout.currency || "INR",
+        customerEmail: checkout.email,
+        webUrl: checkout.web_url || checkout.abandoned_checkout_url || null,
+        createdAt: new Date(checkout.created_at || Date.now()),
+      },
+    });
+  }
+  console.log(`Synced ${checkouts.length} checkouts for ${storeUrl}`);
+}
 
-module.exports = { syncProducts, syncCustomers, syncOrders };
+module.exports = { syncProducts, syncCustomers, syncOrders, syncCheckouts };

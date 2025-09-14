@@ -24,12 +24,9 @@ const getDataForUser = async (req, res) => {
                 tenants: {
                     include: {
                         products: true,
-                        customers: {
-                            include: {
-                                _count: { select: { orders: true } },
-                            },
-                        },
+                        customers: { include: { _count: { select: { orders: true } } } },
                         orders: { include: { customer: true, lineItems: true } },
+                        checkouts: true,
                     },
                 },
             },
@@ -37,13 +34,13 @@ const getDataForUser = async (req, res) => {
 
         if (!userWithData) return res.status(404).json({ error: 'User not found.' });
 
-        const processedTenants = userWithData.tenants.map(tenant => {
-            const processedCustomers = tenant.customers.map(customer => ({
+        const processedTenants = userWithData.tenants.map(tenant => ({
+            ...tenant,
+            customers: tenant.customers.map(customer => ({
                 ...customer,
                 status: customer._count.orders > 1 ? 'Returning' : 'New',
-            }));
-            return { ...tenant, customers: processedCustomers };
-        });
+            })),
+        }));
 
         res.status(200).json(processedTenants);
     } catch (error) {
@@ -67,6 +64,7 @@ const syncTenantData = async (req, res) => {
         await shopifyService.syncProducts(tenant.id, tenant.storeUrl, tenant.accessToken);
         await shopifyService.syncCustomers(tenant.id, tenant.storeUrl, tenant.accessToken);
         await shopifyService.syncOrders(tenant.id, tenant.storeUrl, tenant.accessToken);
+        await shopifyService.syncCheckouts(tenant.id, tenant.storeUrl, tenant.accessToken);
 
         res.status(200).json({ message: 'Sync completed successfully.' });
     } catch (error) {

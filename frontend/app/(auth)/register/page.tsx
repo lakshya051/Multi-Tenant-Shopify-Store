@@ -7,7 +7,6 @@ import { clientApiService } from '../../../lib/clientApiService';
 import { Package } from 'lucide-react';
 import { PasswordInput } from '../../../components/PasswordInput';
 import { toast } from 'sonner';
-
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

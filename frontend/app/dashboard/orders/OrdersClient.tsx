@@ -11,6 +11,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: (Order & { stor
     from: addDays(new Date(), -30),
     to: new Date(),
   });
+  const [showAll, setShowAll] = useState(false);
 
   const filteredOrders = useMemo(() => {
     return initialOrders.filter(order => {
@@ -25,6 +26,9 @@ export function OrdersClient({ initialOrders }: { initialOrders: (Order & { stor
       return true;
     }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [initialOrders, dateRange]);
+
+  const displayedOrders = showAll ? filteredOrders : filteredOrders.slice(0, 5);
+  const hasMoreOrders = filteredOrders.length > 5;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -43,7 +47,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: (Order & { stor
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredOrders.length > 0 ? filteredOrders.map(order => (
+            {filteredOrders.length > 0 ? displayedOrders.map(order => (
               <tr key={order.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id.substring(order.id.length-7)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(order.createdAt), 'MMM dd, yyyy')}</td>
@@ -63,6 +67,16 @@ export function OrdersClient({ initialOrders }: { initialOrders: (Order & { stor
           </tbody>
         </table>
       </div>
+      {hasMoreOrders && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium"
+          >
+            {showAll ? 'Show Less' : `Show More (${filteredOrders.length - 5} more)`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

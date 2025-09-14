@@ -53,7 +53,7 @@ export default function MetricsPage() {
         return (
             <div className="text-center p-10 bg-white rounded-lg shadow">
                 <h2 className="text-xl font-semibold text-gray-700">No Store Selected</h2>
-                <p className="text-gray-500 mt-2">Please select a store to view its metrics.</p>
+                <p className="text-gray-500 mt-2">Please select a store from the dropdown to view its metrics.</p>
             </div>
         );
     }

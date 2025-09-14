@@ -1,17 +1,10 @@
 "use client";
-
 import { useDashboard } from '../app/dashboard/DashboardContext';
 import { Link2 } from 'lucide-react';
 
-
 export function NewStoreNotification() {
-
     const { newlyInstalledTenant, handleLinkTenant, isLinking } = useDashboard();
-
-
-    if (!newlyInstalledTenant) {
-        return null;
-    }
+    if (!newlyInstalledTenant) return null;
 
     return (
         <div className="bg-blue-600 text-white p-4 flex justify-center items-center gap-4 shadow-lg">

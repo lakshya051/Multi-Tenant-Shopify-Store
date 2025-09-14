@@ -56,39 +56,33 @@ export function CustomerSegmentationChart({ customers }: ChartProps) {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border h-96">
+
+    <div className="bg-white rounded-lg shadow-md p-6 border h-full flex flex-col">
       <h3 className="text-xl font-bold text-gray-800 mb-4">Customer Segmentation</h3>
       {customers.length > 0 ? (
-        <ResponsiveContainer width="100%" height="90%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={(props) => renderCustomizedLabel(props as PieLabelRenderProps)} 
-              outerRadius={110}
-              innerRadius={60} 
-              fill="#8884d8"
-              paddingAngle={5}
-              dataKey="value"
-            >
-              <Cell key={`cell-0`} fill={COLORS.Returning} />
-              <Cell key={`cell-1`} fill={COLORS.New} />
-            </Pie>
-            <Tooltip
-              formatter={(value: number, name: string) => [value, name]}
-              wrapperStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e2e8f0',
-                padding: '10px 15px',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-              }}
-            />
-            <Legend iconType="circle" />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="flex-grow w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                        data={data}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={(props) => renderCustomizedLabel(props as PieLabelRenderProps)}
+                        outerRadius={100}
+                        innerRadius={60}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        dataKey="value"
+                    >
+                        <Cell key={`cell-0`} fill={COLORS.Returning} />
+                        <Cell key={`cell-1`} fill={COLORS.New} />
+                    </Pie>
+                    <Tooltip formatter={(value: number, name: string) => [value, name]} />
+                    <Legend iconType="circle" />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
       ) : (
         <div className="flex items-center justify-center h-full text-gray-500">
             No customer data to display.

@@ -3,9 +3,11 @@
 import { useDashboard } from '../DashboardContext';
 import Image from 'next/image';
 import { BestSellingProductsChart } from '../../../components/BestSellingProductsChart';
+import { useState } from 'react';
 
 export default function ProductsPage() {
     const { selectedTenant } = useDashboard();
+    const [showAll, setShowAll] = useState(false);
 
     if (!selectedTenant) {
         return (
@@ -17,6 +19,8 @@ export default function ProductsPage() {
     }
 
     const { products, orders } = selectedTenant;
+    const displayedProducts = showAll ? products : products.slice(0, 5);
+    const hasMoreProducts = products.length > 5;
 
     return (
         <div className="space-y-8">
@@ -40,7 +44,7 @@ export default function ProductsPage() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {products.length > 0 ? (
-                                products.map(product => (
+                                displayedProducts.map(product => (
                                     <tr key={product.id}>
                                         <td className="px-6 py-4">
                                             <div className="flex-shrink-0 h-12 w-12">
@@ -69,6 +73,16 @@ export default function ProductsPage() {
                         </tbody>
                     </table>
                 </div>
+                {hasMoreProducts && (
+                    <div className="mt-4 text-center">
+                        <button
+                            onClick={() => setShowAll(!showAll)}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium"
+                        >
+                            {showAll ? 'Show Less' : `Show More (${products.length - 5} more)`}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

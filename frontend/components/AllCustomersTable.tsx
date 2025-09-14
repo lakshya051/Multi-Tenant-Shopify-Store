@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Customer } from '../lib/clientApiService';
 
 interface AllCustomersTableProps {
@@ -12,6 +12,11 @@ interface AllCustomersTableProps {
  * Includes name, status, total orders, and lifetime spend.
  */
 export function AllCustomersTable({ customers }: AllCustomersTableProps) {
+  const [showAll, setShowAll] = useState(false);
+  
+  const displayedCustomers = showAll ? customers : customers.slice(0, 5);
+  const hasMoreCustomers = customers.length > 5;
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="overflow-x-auto">
@@ -26,7 +31,7 @@ export function AllCustomersTable({ customers }: AllCustomersTableProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {customers.length > 0 ? (
-              customers.map(customer => (
+              displayedCustomers.map(customer => (
                 <tr key={customer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{customer.firstName} {customer.lastName}</div>
@@ -57,6 +62,16 @@ export function AllCustomersTable({ customers }: AllCustomersTableProps) {
           </tbody>
         </table>
       </div>
+      {hasMoreCustomers && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium"
+          >
+            {showAll ? 'Show Less' : `Show More (${customers.length - 5} more)`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,6 +17,7 @@ model Tenant {
   orders      Order[]
   users       User[]     @relation("TenantToUser")
   lineItems   LineItem[]
+   checkouts   Checkout[]
 }
 
 model Customer {
@@ -29,6 +30,7 @@ model Customer {
   phone     String?
   createdAt DateTime
   orders    Order[]
+  orderCount Int      @default(0)
 
   @@unique([id, tenantId])
 }
@@ -58,6 +60,7 @@ model Order {
   customerId      BigInt?
   customer        Customer? @relation(fields: [customerId, tenantId], references: [id, tenantId], onDelete: Cascade)
   lineItems       LineItem[]
+  checkoutId      BigInt?    @unique
 
   @@unique([id, tenantId])
 }
@@ -73,6 +76,8 @@ model LineItem {
   quantity  Int
   price     Float
   title     String
+  name       String? // The full name of the line item
+  vendor     String? // The vendor of the line item
 
   @@unique([id, tenantId])
 }
@@ -83,4 +88,18 @@ model User {
   password  String
   createdAt DateTime @default(now())
   tenants   Tenant[] @relation("TenantToUser")
+}
+
+model Checkout {
+  id              BigInt    @id
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  totalPrice      Float
+  currency        String
+  customerEmail   String?
+  webUrl          String? // The URL to recover the abandoned cart
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([id, tenantId])
 }

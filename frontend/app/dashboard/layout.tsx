@@ -1,42 +1,21 @@
 import { Sidebar } from '../../components/Sidebar';
-import { Header } from '../../components/Header';
 import { serverApiService } from '../../lib/serverApiService';
-import { DashboardClient } from './DashBoardClient';
+import { DashboardProvider } from './DashboardProvider'; 
 import { Tenant } from '../../lib/clientApiService';
+import { Header } from '../../components/Header';
 import { NewStoreNotification } from '../../components/NewStoreNotification';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-
-export const dynamic = 'force-dynamic';
 
 async function getInitialData(): Promise<Tenant[]> {
-    try {
-        return await serverApiService.getDataOnServer();
-    } catch (error) {
-        console.error("Failed to fetch initial data:", error);
-        return [];
-    }
+    return await serverApiService.getDataOnServer();
 }
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // Check if user is authenticated
-  const cookieStore = await cookies();
-  const token = cookieStore.get('token');
-  
-  if (!token) {
-    redirect('/login');
-  }
-
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const initialData = await getInitialData();
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
-      <DashboardClient initialData={initialData}>
+      <DashboardProvider initialData={initialData}>
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
           <NewStoreNotification /> 
@@ -44,7 +23,7 @@ export default async function DashboardLayout({
             {children}
           </main>
         </div>
-      </DashboardClient>
+      </DashboardProvider>
     </div>
   );
 }

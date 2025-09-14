@@ -25,15 +25,48 @@ const callback = async (req, res) => {
         const callbackData = await shopify.auth.callback({ rawRequest: req, rawResponse: res });
         const { session } = callbackData;
 
-        
         const tenant = await prisma.tenant.upsert({
             where: { storeUrl: session.shop },
             update: { accessToken: session.accessToken },
             create: { storeUrl: session.shop, accessToken: session.accessToken },
-            select: { id: true, storeUrl: true } 
+            select: { id: true, storeUrl: true }
         });
         
-        console.log(`Successfully onboarded and saved tenant: ${tenant.storeUrl}`);
+        
+        console.log("Registering webhooks for", session.shop);
+        const webhookEndpoint = `${process.env.HOST}/api/webhooks/shopify/${tenant.id}`;
+        const webhookTopics = [
+            "products/create", 
+            "products/update", 
+            "products/delete", 
+            "orders/create", 
+            "customers/create", 
+            "customers/update", 
+            "app/uninstalled",
+            "checkouts/create",
+            "checkouts/update",
+        ];
+        const client = new shopify.clients.Rest({ session });
+
+        
+        const existingWebhooks = await client.get({ path: "webhooks" });
+        for (const webhook of existingWebhooks.body.webhooks) {
+            await client.delete({ path: `webhooks/${webhook.id}` });
+        }
+
+        
+        for (const topic of webhookTopics) {
+            try {
+                await client.post({
+                    path: "webhooks",
+                    data: { webhook: { topic, address: webhookEndpoint, format: "json" } },
+                });
+                console.log(`✅ Successfully registered webhook: ${topic}`);
+            } catch (error) {
+                console.error(`❌ Failed to register webhook: ${topic}`, error.message);
+            }
+        }
+        
         
         res.redirect(`${process.env.HOST_URL}/shopify/return?newTenantId=${tenant.id}&shop=${tenant.storeUrl}`);
 
@@ -45,47 +78,7 @@ const callback = async (req, res) => {
 
 
 const handleWebhook = async (req, res) => {
-    try {
-        
-        const { topic, shop, webhookId } = await shopify.webhooks.validate({
-            rawBody: req.body.toString(),
-            rawRequest: req,
-            rawResponse: res,
-        });
-
-        if (!shop) {
-            return res.status(401).send('Webhook validation failed: Could not determine shop.');
-        }
-
-        
-        const tenant = await prisma.tenant.findUnique({ where: { storeUrl: shop } });
-        if (!tenant) {
-            console.warn(`Webhook received for an unknown tenant: ${shop}`);
-            
-            return res.status(200).send('Webhook received for unknown tenant.');
-        }
-
-        
-        switch (topic) {
-            case 'ORDERS_CREATE':
-                console.log(`Webhook received: New order created for ${shop}.`);
-                const orderData = JSON.parse(req.body.toString());
-                
-                await shopifyService.syncOrders(tenant.id, tenant.storeUrl, tenant.accessToken);
-                break;
-            
-            default:
-                console.log(`Webhook received for unhandled topic: ${topic}`);
-                break;
-        }
-
-        res.status(200).send('Webhook processed successfully.');
-        
-    } catch (error) {
-        console.error('Webhook processing error:', error);
-        
-        res.status(500).send('An error occurred while processing the webhook.');
-    }
+    console.log("old webhook");
 };
 
 module.exports = { install, callback, handleWebhook };
