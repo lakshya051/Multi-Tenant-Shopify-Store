@@ -19,10 +19,15 @@ const PORT = process.env.PORT || 3000;
 
 
 app.use(cors({
-    origin: process.env.HOST_URL, 
-    credentials: true,               
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
 }));
-
 
 app.use(cookieParser());
 
