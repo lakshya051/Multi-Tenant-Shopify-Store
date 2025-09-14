@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id          String   @id @default(cuid())
+  storeUrl    String   @unique
+  accessToken String
+  createdAt   DateTime @default(now())
+  customers   Customer[]
+  products    Product[]
+  orders      Order[]
+  users       User[]     @relation("TenantToUser")
+  lineItems   LineItem[]
+   checkouts   Checkout[]
+}
+
+model Customer {
+  id        BigInt   @id
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  firstName String?
+  lastName  String?
+  email     String?
+  phone     String?
+  createdAt DateTime
+  orders    Order[]
+  orderCount Int      @default(0)
+
+  @@unique([id, tenantId])
+}
+
+model Product {
+  id          BigInt   @id
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  vendor      String?
+  productType String?
+  createdAt   DateTime
+  imageUrl    String?
+  lineItems   LineItem[]
+
+  @@unique([id, tenantId])
+}
+
+model Order {
+  id              BigInt    @id
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  totalPrice      Float
+  currency        String
+  financialStatus String?
+  createdAt       DateTime
+  customerId      BigInt?
+  customer        Customer? @relation(fields: [customerId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  lineItems       LineItem[]
+  checkoutId      BigInt?    @unique
+
+  @@unique([id, tenantId])
+}
+
+model LineItem {
+  id        BigInt   @id
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId   BigInt
+  order     Order    @relation(fields: [orderId, tenantId], references: [id, tenantId], onDelete: Cascade)
+  productId BigInt?
+  product   Product? @relation(fields: [productId, tenantId], references: [id, tenantId], onDelete: SetNull)
+  quantity  Int
+  price     Float
+  title     String
+  name       String? // The full name of the line item
+  vendor     String? // The vendor of the line item
+
+  @@unique([id, tenantId])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  tenants   Tenant[] @relation("TenantToUser")
+}
+
+model Checkout {
+  id              BigInt    @id
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  totalPrice      Float
+  currency        String
+  customerEmail   String?
+  webUrl          String? // The URL to recover the abandoned cart
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([id, tenantId])
+}
